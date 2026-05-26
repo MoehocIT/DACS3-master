@@ -2,11 +2,9 @@ package com.example.dacs3
 
 data class Property(
 
-    val imageUrl: String = "",
+    val title: String = "",
 
     val price: String = "",
-
-    val title: String = "",
 
     val location: String = "",
 
@@ -16,5 +14,7 @@ data class Property(
 
     val area: String = "",
 
-    val rating: Float = 0f
+    val imageUrl: String = "",
+
+    val rating: Float = 4f
 )

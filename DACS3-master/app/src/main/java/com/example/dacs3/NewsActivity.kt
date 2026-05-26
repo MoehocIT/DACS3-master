@@ -1,8 +1,8 @@
 package com.example.dacs3
 
+import android.content.Intent
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.dacs3.databinding.ActivityNewsBinding
@@ -10,21 +10,26 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 class NewsActivity : AppCompatActivity() {
 
+    // VIEW BINDING
     private lateinit var binding:
             ActivityNewsBinding
 
+    // FIREBASE
+    private lateinit var firestore:
+            FirebaseFirestore
+
+    // ADAPTER
     private lateinit var adapter:
             NewsAdapter
 
+    // LIST
     private val newsList =
-        mutableListOf<News>()
-
-    private val filteredList =
         mutableListOf<News>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // BINDING
         binding =
             ActivityNewsBinding.inflate(
                 layoutInflater
@@ -32,17 +37,101 @@ class NewsActivity : AppCompatActivity() {
 
         setContentView(binding.root)
 
+        // FIREBASE
+        firestore =
+            FirebaseFirestore.getInstance()
+
+        // SETUP
+        setupBottomNavigation()
+
         setupRecycler()
 
-        setupSearch()
+        setupAddButton()
 
         loadNews()
     }
 
+    // ===================================
+    // BOTTOM NAVIGATION
+    // ===================================
+
+    private fun setupBottomNavigation() {
+
+        binding.bottomNav.selectedItemId =
+            R.id.nav_blog
+
+        binding.bottomNav
+            .setOnItemSelectedListener { item ->
+
+                when (item.itemId) {
+
+                    // HOME
+                    R.id.nav_home -> {
+
+                        startActivity(
+
+                            Intent(
+                                this,
+                                MainActivity::class.java
+                            )
+                        )
+
+                        overridePendingTransition(0, 0)
+
+                        true
+                    }
+
+                    // PROPERTY
+                    R.id.nav_rooms -> {
+
+                        startActivity(
+
+                            Intent(
+                                this,
+                                PropertyActivity::class.java
+                            )
+                        )
+
+                        overridePendingTransition(0, 0)
+
+                        true
+                    }
+
+                    // BLOG
+                    R.id.nav_blog -> {
+
+                        true
+                    }
+
+                    // PROFILE
+                    R.id.nav_profile -> {
+
+                        startActivity(
+
+                            Intent(
+                                this,
+                                ProfileActivity::class.java
+                            )
+                        )
+
+                        overridePendingTransition(0, 0)
+
+                        true
+                    }
+
+                    else -> false
+                }
+            }
+    }
+
+    // ===================================
+    // RECYCLER VIEW
+    // ===================================
+
     private fun setupRecycler() {
 
         adapter =
-            NewsAdapter(filteredList)
+            NewsAdapter(newsList)
 
         binding.recyclerNews.layoutManager =
             LinearLayoutManager(this)
@@ -51,19 +140,18 @@ class NewsActivity : AppCompatActivity() {
             adapter
     }
 
+    // ===================================
+    // LOAD FIREBASE
+    // ===================================
+
     private fun loadNews() {
 
-        FirebaseFirestore.getInstance()
-
-            .collection("news")
-
+        firestore.collection("news")
             .get()
 
             .addOnSuccessListener { documents ->
 
                 newsList.clear()
-
-                filteredList.clear()
 
                 for (document in documents) {
 
@@ -73,63 +161,38 @@ class NewsActivity : AppCompatActivity() {
                         )
 
                     newsList.add(news)
-
-                    filteredList.add(news)
                 }
 
                 adapter.notifyDataSetChanged()
             }
+
+            .addOnFailureListener {
+
+                Toast.makeText(
+                    this,
+                    "Không thể tải blogs",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
     }
 
-    private fun setupSearch() {
+    // ===================================
+    // ADD BLOG
+    // ===================================
 
-        binding.edtSearchNews
-            .addTextChangedListener(
+    private fun setupAddButton() {
 
-                object : TextWatcher {
+        binding.btnAddBlog
+            .setOnClickListener {
 
-                    override fun beforeTextChanged(
-                        s: CharSequence?,
-                        start: Int,
-                        count: Int,
-                        after: Int
-                    ) {
-                    }
+                Toast.makeText(
+                    this,
+                    "Thêm blog mới",
+                    Toast.LENGTH_SHORT
+                ).show()
 
-                    override fun onTextChanged(
-                        s: CharSequence?,
-                        start: Int,
-                        before: Int,
-                        count: Int
-                    ) {
-
-                        val text =
-                            s.toString()
-                                .lowercase()
-
-                        filteredList.clear()
-
-                        for (news in newsList) {
-
-                            if (
-                                news.title
-                                    .lowercase()
-                                    .contains(text)
-                            ) {
-
-                                filteredList
-                                    .add(news)
-                            }
-                        }
-
-                        adapter.notifyDataSetChanged()
-                    }
-
-                    override fun afterTextChanged(
-                        s: Editable?
-                    ) {
-                    }
-                }
-            )
+                // TODO:
+                // OPEN ADD BLOG SCREEN
+            }
     }
 }
